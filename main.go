@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 
+	"github.com/Mersock/golang-mongo-testing/dbiface"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -14,8 +16,19 @@ type User struct {
 	LastName  string `bson:"last_name"`
 }
 
-func inserData(collection *mongo.Collection, user User) (*mongo.InsertOneResult, error) {
+func inserData(collection dbiface.CollectionAPIs, user User) (*mongo.InsertOneResult, error) {
+	if user.FirstName != "knz" {
+		return nil, errors.New("name not correct")
+	}
 	res, err := collection.InsertOne(context.Background(), user)
+	if err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
+func deleteOne(collection dbiface.CollectionAPIs, user User) (*mongo.DeleteResult, error) {
+	res, err := collection.DeleteOne(context.Background(), user)
 	if err != nil {
 		return res, err
 	}
@@ -29,6 +42,8 @@ func main() {
 	}
 	db := c.Database("tronics")
 	col := db.Collection("products")
-	res, err := inserData(col, User{"knz", "phumthawan"})
-	log.Println(res, err)
+	res1, err := inserData(col, User{"knz", "phumthawan"})
+	log.Println(res1, err)
+	res2, err := deleteOne(col, User{"knz", "phumthawan"})
+	log.Println(res2, err)
 }
